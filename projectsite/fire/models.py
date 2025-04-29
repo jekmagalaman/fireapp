@@ -19,6 +19,8 @@ class Locations(BaseModel):
     city = models.CharField(max_length=150)  # can be in separate table
     country = models.CharField(max_length=150)  # can be in separate table
 
+    def __str__(self):
+        return self.name
 
 class Incident(BaseModel):
     SEVERITY_CHOICES = (
@@ -27,10 +29,12 @@ class Incident(BaseModel):
         ('Major Fire', 'Major Fire'),
     )
     location = models.ForeignKey(Locations, on_delete=models.CASCADE)
-    date_time = models.DateTimeField(blank=True, null=True)
+    date_time = models.DateField(blank=True, null=True)
     severity_level = models.CharField(max_length=45, choices=SEVERITY_CHOICES)
     description = models.CharField(max_length=250)
 
+    def __str__(self):
+        return f"{self.severity_level} at {self.location}"
 
 class FireStation(BaseModel):
     name = models.CharField(max_length=150)
@@ -39,12 +43,14 @@ class FireStation(BaseModel):
     longitude = models.DecimalField(
         max_digits=22, decimal_places=16, null=True, blank=True)
     address = models.CharField(max_length=150)
-    city = models.CharField(max_length=150)  # can be in separate table
-    country = models.CharField(max_length=150)  # can be in separate table
+    city = models.CharField(max_length=150) 
+    country = models.CharField(max_length=150) 
 
+    def __str__(self):
+        return self.name
 
 class Firefighters(BaseModel):
-    XP_CHOICES = (
+    RANK_CHOICES = (
         ('Probationary Firefighter', 'Probationary Firefighter'),
         ('Firefighter I', 'Firefighter I'),
         ('Firefighter II', 'Firefighter II'),
@@ -52,19 +58,28 @@ class Firefighters(BaseModel):
         ('Driver', 'Driver'),
         ('Captain', 'Captain'),
         ('Battalion Chief', 'Battalion Chief'),)
+    
+    XP_CHOICES = (
+        ('Beginner', 'Beginner'),
+        ('Intermediate', 'Intermediate'),
+        ('Advanced', 'Advanced'),
+        ('Expert', 'Expert'),)
     name = models.CharField(max_length=150)
-    rank = models.CharField(max_length=150)
-    experience_level = models.CharField(max_length=150)
-    station = models.CharField(
-        max_length=45, null=True, blank=True, choices=XP_CHOICES)
+    rank = models.CharField(max_length=45, null=True, blank=True, choices=RANK_CHOICES)
+    experience_level = models.CharField(max_length=45, null=True, blank=True, choices=XP_CHOICES)
+    station = models.ForeignKey(FireStation, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.name
 
 class FireTruck(BaseModel):
     truck_number = models.CharField(max_length=150)
     model = models.CharField(max_length=150)
-    capacity = models.CharField(max_length=150)  # water
+    capacity = models.IntegerField()
     station = models.ForeignKey(FireStation, on_delete=models.CASCADE)
-
+    
+    def __str__(self):
+        return self.truck_number
 
 class WeatherConditions(BaseModel):
     incident = models.ForeignKey(Incident, on_delete=models.CASCADE)
@@ -72,3 +87,6 @@ class WeatherConditions(BaseModel):
     humidity = models.DecimalField(max_digits=10, decimal_places=2)
     wind_speed = models.DecimalField(max_digits=10, decimal_places=2)
     weather_description = models.CharField(max_length=150)
+
+    def __str__(self):
+        return f"Weather on {self.incident}: {self.weather_description}"
